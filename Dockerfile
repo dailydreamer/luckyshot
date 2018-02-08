@@ -1,7 +1,10 @@
-FROM gcr.io/tensorflow/tensorflow:latest-py3
+FROM gcr.io/tensorflow/tensorflow:1.5.0-py3
 
 ENV OPENCV_VERSION 3.4.0
 ENV NUM_CORES 4
+
+# install cython and keras
+RUN pip3 --no-cache-dir install Cython keras
 
 # Install OpenCV
 RUN apt-get -y update -qq && \
@@ -31,8 +34,22 @@ RUN apt-get -y update -qq && \
                        # Tools
                        imagemagick \
                        # For use matplotlib.pyplot in python
-                       python3-tk
+                       python3-pip \
+                       python3-tk \
+                       python3-skimage \
+                       && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
 WORKDIR /
+
+    # install cocoapi
+RUN git clone https://github.com/cocodataset/cocoapi.git &&\
+    cd cocoapi/PythonAPI &&\
+    python3 setup.py build_ext install &&\
+    cd / &&\
+    rm -r cocoapi
+
     # Get OpenCV
 RUN git clone https://github.com/opencv/opencv.git &&\
     cd opencv &&\
@@ -70,6 +87,8 @@ RUN git clone https://github.com/opencv/opencv.git &&\
     cd / &&\
     rm -r /opencv &&\
     rm -r /opencv_contrib
+
+
 
 # TensorBoard
 EXPOSE 6006
